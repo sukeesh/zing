@@ -7,6 +7,7 @@
   
   [![Open Source](https://img.shields.io/badge/Open%20Source-Free%20Forever-blue?style=for-the-badge&logo=github)](https://github.com/sukeesh/zing)
   [![Made with Rust](https://img.shields.io/badge/Made%20with-Rust-orange?style=for-the-badge&logo=rust)](https://www.rust-lang.org/)
+  [![Website](https://img.shields.io/badge/Website-Visit%20Zing-purple?style=for-the-badge&logo=safari)](http://sukeesh.in/zing/)
   
   [Features](#features) • [Download](#building-from-source) • [Usage](#usage) • [Development](#development)
 
@@ -112,6 +113,7 @@ Zing is developed by [Sukeesh](https://github.com/sukeesh). Connect with me:
 - GitHub: [@sukeesh](https://github.com/sukeesh)
 - LinkedIn: [Sukeesh](https://www.linkedin.com/in/sukeesh/)
 - Repository: [github.com/sukeesh/zing](https://github.com/sukeesh/zing)
+- Website: [sukeesh.in/zing](http://sukeesh.in/zing/)
 
 ## 📜 License
 
