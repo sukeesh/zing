@@ -72,13 +72,13 @@ jobs:
             "Zing.app"
             
       - name: Upload App Bundle
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Zing.app
           path: Zing.app
           
       - name: Upload DMG
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Zing.dmg
           path: Zing.dmg
