@@ -60,20 +60,102 @@ jobs:
           </dict>
           </plist>
           EOF
+      
+      # Add steps for code signing
+      - name: Import Code Signing Certificates
+        if: env.APPLE_CERTIFICATE_BASE64 != ''
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ github.run_id }}
+        run: |
+          # Create keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security set-keychain-settings -t 3600 -u build.keychain
           
+          # Import certificate
+          echo $APPLE_CERTIFICATE_BASE64 | base64 --decode > certificate.p12
+          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+          
+          # Clean up
+          rm certificate.p12
+      
+      - name: Sign the Application
+        if: env.APPLE_CERTIFICATE_BASE64 != ''
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+        run: |
+          # Sign the app bundle
+          /usr/bin/codesign --force --sign "Developer ID Application" --options runtime Zing.app --deep
+      
+      # Add fallback for when certificates aren't available
+      - name: Add entitlements for local testing (unsigned)
+        if: env.APPLE_CERTIFICATE_BASE64 == ''
+        run: |
+          echo "No code signing certificates available. Creating unsigned app with entitlements for local testing."
+          
+          # Create entitlements file
+          cat > entitlements.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>com.apple.security.cs.disable-library-validation</key>
+              <true/>
+              <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+              <true/>
+              <key>com.apple.security.cs.allow-dyld-environment-variables</key>
+              <true/>
+          </dict>
+          </plist>
+          EOF
+          
+          # Add README with instructions for users
+          cat > "HOW_TO_OPEN_UNSIGNED_APP.txt" << EOF
+          To open an unsigned app on macOS:
+          
+          1. Right-click (or Control-click) on the app
+          2. Select "Open" from the context menu
+          3. Click "Open" in the dialog that appears
+          
+          This only needs to be done once. After that, you can open the app normally.
+          
+          Alternatively, you can run this command in Terminal to disable Gatekeeper for this app:
+          xattr -d com.apple.quarantine /path/to/Zing.app
+          EOF
+      
       - name: Create DMG
         run: |
-          create-dmg \
-            --volname "Zing" \
-            --volicon "assets/icon.png" \
-            --window-pos 200 120 \
-            --window-size 800 400 \
-            --icon-size 100 \
-            --icon "Zing.app" 200 190 \
-            --hide-extension "Zing.app" \
-            --app-drop-link 600 185 \
-            "Zing.dmg" \
-            "Zing.app"
+          # Include the instructions file if we're not signing
+          if [ -f "HOW_TO_OPEN_UNSIGNED_APP.txt" ]; then
+            create-dmg \
+              --volname "Zing" \
+              --volicon "assets/icon.png" \
+              --window-pos 200 120 \
+              --window-size 800 500 \
+              --icon-size 100 \
+              --icon "Zing.app" 200 190 \
+              --hide-extension "Zing.app" \
+              --app-drop-link 600 185 \
+              --add-file "HOW_TO_OPEN_UNSIGNED_APP.txt" 400 350 \
+              "Zing.dmg" \
+              "Zing.app"
+          else
+            create-dmg \
+              --volname "Zing" \
+              --volicon "assets/icon.png" \
+              --window-pos 200 120 \
+              --window-size 800 400 \
+              --icon-size 100 \
+              --icon "Zing.app" 200 190 \
+              --hide-extension "Zing.app" \
+              --app-drop-link 600 185 \
+              "Zing.dmg" \
+              "Zing.app"
+          fi
             
       - name: Upload App Bundle
         uses: actions/upload-artifact@v4
