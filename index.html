@@ -674,6 +674,26 @@
                 font-size: 2.5rem;
             }
         }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        pre {
+            border-radius: 0 0 0.5rem 0.5rem;
+        }
+        
+        .tab-btn:first-child {
+            border-top-left-radius: 0.5rem;
+        }
+        
+        .tab-btn:last-child {
+            border-top-right-radius: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -712,6 +732,107 @@
             </div>
             <div class="hero-image">
                 <img src="assets/zing_text.png" alt="Zing Editor Screenshot">
+            </div>
+        </div>
+    </section>
+
+    <section id="installation" class="features">
+        <div class="container">
+            <div class="section-title">
+                <h3>Installation</h3>
+                <p>Get started with Zing in minutes</p>
+            </div>
+            
+            <div class="features-grid">
+                <!-- Download Card -->
+                <div class="feature-card">
+                    <div class="feature-icon">📥</div>
+                    <h4>Download Zing</h4>
+                    <p>Get the latest version of Zing for macOS.</p>
+                    <a href="https://github.com/sukeesh/zing/actions/runs/13612702241/artifacts/2676818956" 
+                       class="btn btn-primary" style="margin-top: 1.5rem;">
+                        Download for macOS
+                    </a>
+                    <div style="margin-top: 1.5rem; color: var(--gray); border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                        <h5 style="font-weight: 600; margin-bottom: 0.75rem; color: var(--text-color);">Opening on macOS</h5>
+                        <ol style="padding-left: 1.5rem; margin-bottom: 1rem;">
+                            <li style="margin-bottom: 0.5rem;">After downloading, open the DMG file</li>
+                            <li style="margin-bottom: 0.5rem;">Drag Zing to your Applications folder</li>
+                            <li style="margin-bottom: 0.5rem;">When you first open Zing, macOS may show a security warning</li>
+                            <li style="margin-bottom: 0.5rem;">Go to System Preferences → Security & Privacy → General</li>
+                            <li style="margin-bottom: 0.5rem;">Click "Open Anyway" to allow Zing to run</li>
+                            <li style="margin-bottom: 0.5rem;">You may need to approve a second security prompt</li>
+                        </ol>
+                        <div style="background: rgba(99, 102, 241, 0.1); border-radius: 0.5rem; padding: 1rem; border-left: 3px solid var(--primary);">
+                            <p style="margin: 0; font-size: 0.9rem;">
+                                <strong>Note:</strong> macOS requires approval for apps not from the App Store. This is normal and helps keep your Mac secure. Zing is safe to use.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Build Instructions Card -->
+                <div class="feature-card" style="grid-column: span 2;">
+                    <div class="feature-icon">🛠️</div>
+                    <h4>Build from Source</h4>
+                    <p>If you prefer to build Zing from source, follow these instructions:</p>
+                    
+                    <div style="margin: 1.5rem 0 1rem;">
+                        <h5 style="font-weight: 600; margin-bottom: 0.75rem; color: var(--text-color);">Prerequisites</h5>
+                        <ul style="list-style: disc; padding-left: 1.5rem; color: var(--gray);">
+                            <li>Rust (latest stable version) and Cargo</li>
+                            <li>A C/C++ compiler (for some dependencies)</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="border: 1px solid var(--border-color); border-radius: 0.75rem; overflow: hidden; margin-top: 1.5rem;">
+                        <div class="tabs" style="display: flex; border-bottom: 1px solid var(--border-color);">
+                            <button class="tab-button" data-tab="windows" style="flex: 1; padding: 0.75rem 1rem; background: var(--card-bg); color: var(--gray); border: none; border-right: 1px solid var(--border-color); cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 500; transition: all 0.3s ease; position: relative;">Windows</button>
+                            <button class="tab-button" data-tab="macos" style="flex: 1; padding: 0.75rem 1rem; background: var(--card-bg); color: var(--gray); border: none; border-right: 1px solid var(--border-color); cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 500; transition: all 0.3s ease; position: relative;">macOS</button>
+                            <button class="tab-button" data-tab="linux" style="flex: 1; padding: 0.75rem 1rem; background: var(--card-bg); color: var(--gray); border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 500; transition: all 0.3s ease; position: relative;">Linux</button>
+                        </div>
+                        
+                        <div id="tab-windows" class="tab-content" style="display: none;">
+                            <pre style="background: rgba(3, 7, 18, 0.7); color: var(--text-color); padding: 1.5rem; overflow-x: auto; margin: 0; font-family: monospace; line-height: 1.5;"># Clone the repository
+git clone https://github.com/sukeesh/zing.git
+cd zing
+
+# Build in release mode
+cargo build --release
+
+# Run the application
+cargo run --release</pre>
+                        </div>
+                        
+                        <div id="tab-macos" class="tab-content" style="display: none;">
+                            <pre style="background: rgba(3, 7, 18, 0.7); color: var(--text-color); padding: 1.5rem; overflow-x: auto; margin: 0; font-family: monospace; line-height: 1.5;"># Clone the repository
+git clone https://github.com/sukeesh/zing.git
+cd zing
+
+# Build in release mode
+cargo build --release
+
+# Run the application
+cargo run --release</pre>
+                        </div>
+                        
+                        <div id="tab-linux" class="tab-content" style="display: none;">
+                            <pre style="background: rgba(3, 7, 18, 0.7); color: var(--text-color); padding: 1.5rem; overflow-x: auto; margin: 0; font-family: monospace; line-height: 1.5;"># Install required dependencies (Ubuntu/Debian example)
+sudo apt-get update
+sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
+
+# Clone the repository
+git clone https://github.com/sukeesh/zing.git
+cd zing
+
+# Build in release mode
+cargo build --release
+
+# Run the application
+cargo run --release</pre>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -849,7 +970,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const header = document.querySelector('header');
-            const heroSection = document.querySelector('.hero');
             
             // Handle header scroll effect
             window.addEventListener('scroll', () => {
@@ -914,10 +1034,58 @@
             
             // Handle download button
             const buyButton = document.querySelector('#download');
-            buyButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                alert('Starting download...');
+            if (buyButton) {
+                buyButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    alert('Starting download...');
+                });
+            }
+            
+            // Tab functionality for installation section
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            // Function to switch tabs
+            function switchTab(tabId) {
+                // Reset all buttons
+                tabButtons.forEach(btn => {
+                    btn.style.color = 'var(--gray)';
+                    btn.style.background = 'var(--card-bg)';
+                    // Remove bottom indicator
+                    btn.style.boxShadow = 'none';
+                });
+                
+                // Hide all content
+                tabContents.forEach(content => {
+                    content.style.display = 'none';
+                });
+                
+                // Activate clicked tab
+                const activeButton = document.querySelector(`[data-tab="${tabId}"]`);
+                if (activeButton) {
+                    activeButton.style.color = 'var(--text-color)';
+                    activeButton.style.background = 'rgba(99, 102, 241, 0.1)';
+                    // Add bottom indicator for active tab
+                    activeButton.style.boxShadow = 'inset 0 -3px 0 var(--primary)';
+                }
+                
+                // Show corresponding content
+                const activeContent = document.getElementById(`tab-${tabId}`);
+                if (activeContent) {
+                    activeContent.style.display = 'block';
+                }
+            }
+            
+            // Add click event listeners to tab buttons
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
             });
+            
+            // Set default active tab (macOS)
+            switchTab('macos');
         });
     </script>
 </body>
