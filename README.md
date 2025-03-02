@@ -1,16 +1,27 @@
-# Zing Text Editor
+<div align="center">
+  <img src="assets/icon.png" alt="Zing Logo" width="120"/>
+  
+  # Zing Text Editor
+  
+  A fast, beautiful, cross-platform text editor written in Rust
+  
+  [![Open Source](https://img.shields.io/badge/Open%20Source-Free%20Forever-blue?style=for-the-badge&logo=github)](https://github.com/sukeesh/zing)
+  [![Made with Rust](https://img.shields.io/badge/Made%20with-Rust-orange?style=for-the-badge&logo=rust)](https://www.rust-lang.org/)
+  
+  [Features](#features) • [Download](#building-from-source) • [Usage](#usage) • [Development](#development)
 
-A fast, beautiful, cross-platform text editor written in Rust. Zing is designed to handle very large files with ease while maintaining a sleek, modern interface.
+  <img src="assets/zing_text.png" alt="Zing Editor Screenshot" width="800"/>
+</div>
 
-## Features
+## ✨ Features
 
-- **Fast and Efficient**: Optimized for speed and memory efficiency, capable of handling multi-GB files
-- **Beautiful UI**: Clean, minimal design with light and dark themes
-- **Cross-Platform**: Runs on Windows, macOS, and Linux
-- **Core Functionality**: Open, Save, and Print text files
-- **Extensible**: Designed with future extensions in mind
+- ⚡ **Fast and Efficient**: Optimized for speed and memory efficiency, capable of handling multi-GB files
+- 🎨 **Beautiful UI**: Clean, minimal design with light and dark themes
+- 💻 **Cross-Platform**: Runs on Windows, macOS, and Linux
+- 📄 **Core Functionality**: Open, Save, and Print text files
+- 🔌 **Extensible**: Designed with future extensions in mind
 
-## Building from Source
+## 🚀 Building from Source
 
 ### Prerequisites
 
@@ -19,11 +30,12 @@ A fast, beautiful, cross-platform text editor written in Rust. Zing is designed 
 
 ### Build Instructions
 
-#### Windows
+<details>
+<summary><b>Windows</b></summary>
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/zing.git
+git clone https://github.com/sukeesh/zing.git
 cd zing
 
 # Build in release mode
@@ -32,12 +44,14 @@ cargo build --release
 # Run the application
 cargo run --release
 ```
+</details>
 
-#### macOS
+<details>
+<summary><b>macOS</b></summary>
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/zing.git
+git clone https://github.com/sukeesh/zing.git
 cd zing
 
 # Build in release mode
@@ -46,8 +60,10 @@ cargo build --release
 # Run the application
 cargo run --release
 ```
+</details>
 
-#### Linux
+<details>
+<summary><b>Linux</b></summary>
 
 ```bash
 # Install required dependencies (Ubuntu/Debian example)
@@ -55,7 +71,7 @@ sudo apt-get update
 sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
 
 # Clone the repository
-git clone https://github.com/yourusername/zing.git
+git clone https://github.com/sukeesh/zing.git
 cd zing
 
 # Build in release mode
@@ -64,8 +80,9 @@ cargo build --release
 # Run the application
 cargo run --release
 ```
+</details>
 
-## Usage
+## 📝 Usage
 
 ### Opening a File
 
@@ -80,7 +97,7 @@ Click on the "Open" button in the toolbar or use the keyboard shortcut `Ctrl+O` 
 
 Click on the "Print" button or use `Ctrl+P`/`Cmd+P` to print the current document.
 
-## Development
+## 🛠️ Development
 
 Zing is organized into several modules:
 
@@ -89,6 +106,13 @@ Zing is organized into several modules:
 - `file_io`: File input/output operations
 - `config`: Configuration and theming
 
-## License
+## 👨‍💻 About the Developer
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+Zing is developed by [Sukeesh](https://github.com/sukeesh). Connect with me:
+- GitHub: [@sukeesh](https://github.com/sukeesh)
+- LinkedIn: [Sukeesh](https://www.linkedin.com/in/sukeesh/)
+- Repository: [github.com/sukeesh/zing](https://github.com/sukeesh/zing)
+
+## 📜 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
