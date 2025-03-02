@@ -19,19 +19,40 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         
-      - name: Install create-dmg
-        run: brew install create-dmg
+      - name: Install create-dmg and imagemagick
+        run: brew install create-dmg imagemagick
         
       - name: Build Release Binary
         run: cargo build --release
+        
+      # Create proper macOS icon set
+      - name: Create Icon Set
+        run: |
+          # Create temporary directory for icon processing
+          mkdir -p iconset.iconset
+          
+          # Convert PNG to ICNS format with multiple resolutions
+          # Assuming assets/icon.png is at least 1024x1024 pixels
+          for size in 16 32 64 128 256 512 1024; do
+            # Standard resolution
+            sips -z $size $size assets/icon.png --out iconset.iconset/icon_${size}x${size}.png
+            
+            # High resolution (retina)
+            if [ $size -lt 512 ]; then
+              sips -z $((size*2)) $((size*2)) assets/icon.png --out iconset.iconset/icon_${size}x${size}@2x.png
+            fi
+          done
+          
+          # Create .icns file from the iconset
+          iconutil -c icns iconset.iconset -o AppIcon.icns
         
       - name: Create App Bundle
         run: |
           mkdir -p Zing.app/Contents/{MacOS,Resources}
           cp target/release/zing Zing.app/Contents/MacOS/
-          cp assets/icon.png Zing.app/Contents/Resources/
+          cp AppIcon.icns Zing.app/Contents/Resources/
           
-          # Create comprehensive Info.plist
+          # Create comprehensive Info.plist with proper icon reference
           cat > Zing.app/Contents/Info.plist << EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -40,7 +61,7 @@ jobs:
               <key>CFBundleExecutable</key>
               <string>zing</string>
               <key>CFBundleIconFile</key>
-              <string>icon.png</string>
+              <string>AppIcon</string>
               <key>CFBundleIdentifier</key>
               <string>com.sukeesh.zing</string>
               <key>CFBundleInfoDictionaryVersion</key>
@@ -61,6 +82,23 @@ jobs:
               <string>NSApplication</string>
               <key>LSApplicationCategoryType</key>
               <string>public.app-category.developer-tools</string>
+              <key>CFBundleDocumentTypes</key>
+              <array>
+                  <dict>
+                      <key>CFBundleTypeExtensions</key>
+                      <array>
+                          <string>txt</string>
+                          <string>md</string>
+                          <string>*</string>
+                      </array>
+                      <key>CFBundleTypeName</key>
+                      <string>Text Document</string>
+                      <key>CFBundleTypeRole</key>
+                      <string>Editor</string>
+                      <key>LSHandlerRank</key>
+                      <string>Alternate</string>
+                  </dict>
+              </array>
           </dict>
           </plist>
           EOF
@@ -177,49 +215,132 @@ jobs:
             echo "::set-output name=notarized::false"
           fi
       
-      # Create instructions file for unsigned app
-      - name: Create instructions for unsigned app
-        if: steps.notarize.outputs.notarized != 'true'
+      # Create helper script to open the app
+      - name: Create helper script
         run: |
-          # Add README with instructions for users
-          cat > "HOW_TO_OPEN_UNSIGNED_APP.txt" << EOF
-          To open Zing on macOS:
+          cat > "open-zing.command" << 'EOF'
+          #!/bin/bash
           
-          Since this app is signed but not notarized, you may see security warnings.
+          # Get the directory where this script is located
+          DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
           
-          To open the app:
-          1. Right-click (or Control-click) on the app
+          # Path to the app
+          APP_PATH="$DIR/Zing.app"
+          
+          # Remove quarantine attribute if present
+          echo "Removing quarantine attribute from Zing.app..."
+          xattr -d com.apple.quarantine "$APP_PATH" 2>/dev/null || true
+          
+          # Open the app
+          echo "Opening Zing.app..."
+          open "$APP_PATH"
+          
+          echo "Done! If Zing opened successfully, you can close this terminal window."
+          EOF
+          
+          # Make the script executable
+          chmod +x open-zing.command
+      
+      # Create detailed instructions file
+      - name: Create detailed instructions
+        run: |
+          cat > "HOW_TO_OPEN_ZING.md" << 'EOF'
+          # How to Open Zing on macOS
+          
+          Since Zing is signed but not notarized with Apple, macOS security features may prevent it from opening normally. Here are three ways to open it:
+          
+          ## Option 1: Use the Helper Script (Easiest)
+          
+          1. Double-click the `open-zing.command` file in this folder
+          2. If prompted with a security warning, click "Open"
+          3. The script will remove security restrictions and open Zing automatically
+          
+          ## Option 2: Right-Click Method
+          
+          1. In Finder, right-click (or Control-click) on `Zing.app`
           2. Select "Open" from the context menu
-          3. Click "Open" in the dialog that appears
+          3. Click "Open" in the security dialog that appears
+          4. The app will now open and be remembered as safe
           
-          This only needs to be done once. After that, you can open the app normally.
+          ## Option 3: Security & Privacy Settings
           
-          Alternatively, you can run this command in Terminal to disable Gatekeeper for this app:
-          xattr -d com.apple.quarantine /Applications/Zing.app
+          If the above methods don't work:
+          
+          1. Try to open the app normally (it will be blocked)
+          2. Open System Preferences > Security & Privacy
+          3. Look for a message about Zing being blocked
+          4. Click "Open Anyway"
+          
+          ## Option 4: Terminal Command
+          
+          For advanced users:
+          
+          ```
+          xattr -d com.apple.quarantine /path/to/Zing.app
+          ```
+          
+          Replace `/path/to/Zing.app` with the actual path to where you installed Zing.
+          
+          ## Need Help?
+          
+          If you're still having trouble, please open an issue on GitHub.
           EOF
       
-      # Create DMG with signed app (always runs)
+      # Create installation instructions
+      - name: Create installation instructions
+        run: |
+          cat > "INSTALL.md" << 'EOF'
+          # Installing Zing
+          
+          ## Installation
+          
+          1. Drag the Zing app to your Applications folder
+          2. Use the included helper script to open it the first time
+          
+          ## First Run
+          
+          The first time you run Zing, macOS may show security warnings. This is normal for apps from independent developers.
+          
+          ## Troubleshooting
+          
+          If you see a broken icon in the Dock:
+          
+          1. Quit Zing if it's running
+          2. Delete the app from your Applications folder
+          3. Empty the Trash
+          4. Reinstall Zing from this DMG
+          5. Use the helper script to open it
+          
+          This ensures the icon cache is properly refreshed.
+          EOF
+      
+      # Create DMG with signed app and helper files
       - name: Create DMG
         run: |
           # Create a temporary directory for DMG contents
           mkdir -p dmg_contents
           cp -r Zing.app dmg_contents/
+          cp open-zing.command dmg_contents/
+          cp HOW_TO_OPEN_ZING.md dmg_contents/
+          cp INSTALL.md dmg_contents/
           
-          # Include instructions if notarization failed
-          if [ -f "HOW_TO_OPEN_UNSIGNED_APP.txt" ]; then
-            cp HOW_TO_OPEN_UNSIGNED_APP.txt dmg_contents/
-          fi
+          # Create Applications folder symlink
+          ln -s /Applications dmg_contents/
           
           # Create the DMG
           create-dmg \
             --volname "Zing" \
-            --volicon "assets/icon.png" \
+            --volicon "AppIcon.icns" \
             --window-pos 200 120 \
-            --window-size 800 400 \
+            --window-size 800 500 \
             --icon-size 100 \
             --icon "Zing.app" 200 190 \
+            --icon "open-zing.command" 400 190 \
+            --icon "Applications" 600 190 \
             --hide-extension "Zing.app" \
-            --app-drop-link 600 185 \
+            --hide-extension "open-zing.command" \
+            --hide-extension "HOW_TO_OPEN_ZING.md" \
+            --hide-extension "INSTALL.md" \
             "Zing.dmg" \
             dmg_contents
       
