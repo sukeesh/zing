@@ -1,0 +1,91 @@
+name: Build and Release macOS Package
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        
+      - name: Install create-dmg
+        run: brew install create-dmg
+        
+      - name: Build Release Binary
+        run: cargo build --release
+        
+      - name: Create App Bundle
+        run: |
+          mkdir -p Zing.app/Contents/{MacOS,Resources}
+          cp target/release/zing Zing.app/Contents/MacOS/
+          cp assets/icon.png Zing.app/Contents/Resources/
+          
+          # Create Info.plist
+          cat > Zing.app/Contents/Info.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>zing</string>
+              <key>CFBundleIconFile</key>
+              <string>icon.png</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.sukeesh.zing</string>
+              <key>CFBundleInfoDictionaryVersion</key>
+              <string>6.0</string>
+              <key>CFBundleName</key>
+              <string>Zing</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>CFBundleShortVersionString</key>
+              <string>${{ github.event.release.tag_name }}</string>
+              <key>CFBundleVersion</key>
+              <string>${{ github.event.release.tag_name }}</string>
+              <key>LSMinimumSystemVersion</key>
+              <string>10.13</string>
+              <key>NSHighResolutionCapable</key>
+              <true/>
+          </dict>
+          </plist>
+          EOF
+          
+      - name: Create DMG
+        run: |
+          create-dmg \
+            --volname "Zing" \
+            --volicon "assets/icon.png" \
+            --window-pos 200 120 \
+            --window-size 800 400 \
+            --icon-size 100 \
+            --icon "Zing.app" 200 190 \
+            --hide-extension "Zing.app" \
+            --app-drop-link 600 185 \
+            "Zing.dmg" \
+            "Zing.app"
+            
+      - name: Upload App Bundle
+        uses: actions/upload-artifact@v3
+        with:
+          name: Zing.app
+          path: Zing.app
+          
+      - name: Upload DMG
+        uses: actions/upload-artifact@v3
+        with:
+          name: Zing.dmg
+          path: Zing.dmg
+          
+      - name: Attach to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            Zing.dmg
+          token: ${{ secrets.GITHUB_TOKEN }}
