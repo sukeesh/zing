@@ -4,6 +4,10 @@ on:
   release:
     types: [created]
 
+# Add permissions block to grant write access to releases
+permissions:
+  contents: write
+
 jobs:
   build-macos:
     runs-on: macos-latest
@@ -86,6 +90,4 @@ jobs:
       - name: Attach to Release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            Zing.dmg
-          token: ${{ secrets.GITHUB_TOKEN }}
+          files: Zing.dmg
