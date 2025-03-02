@@ -61,43 +61,89 @@ jobs:
           </plist>
           EOF
       
-      # Create instructions file for unsigned app
-      - name: Create instructions for unsigned app
+      # Set up keychain and import certificates
+      - name: Set up keychain
+        env:
+          KEYCHAIN_PASSWORD: ${{ github.run_id }}
         run: |
-          # Add README with instructions for users
-          cat > "HOW_TO_OPEN_UNSIGNED_APP.txt" << EOF
-          To open an unsigned app on macOS:
-          
-          1. Right-click (or Control-click) on the app
-          2. Select "Open" from the context menu
-          3. Click "Open" in the dialog that appears
-          
-          This only needs to be done once. After that, you can open the app normally.
-          
-          Alternatively, you can run this command in Terminal to disable Gatekeeper for this app:
-          xattr -d com.apple.quarantine /path/to/Zing.app
-          EOF
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security set-keychain-settings -t 3600 -u build.keychain
       
-      # Fixed create-dmg command
+      # Import Developer ID certificate
+      - name: Import Developer ID Certificate
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ github.run_id }}
+        run: |
+          echo "$CERTIFICATE_BASE64" | base64 --decode > certificate.p12
+          security import certificate.p12 -k build.keychain -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+          rm certificate.p12
+      
+      # Sign the application
+      - name: Sign the application
+        env:
+          DEVELOPER_ID: ${{ secrets.APPLE_DEVELOPER_ID }}
+        run: |
+          # Create entitlements file
+          cat > entitlements.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>com.apple.security.cs.allow-jit</key>
+              <true/>
+              <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+              <true/>
+              <key>com.apple.security.cs.disable-library-validation</key>
+              <true/>
+          </dict>
+          </plist>
+          EOF
+          
+          # Sign the app
+          /usr/bin/codesign --force --options runtime --entitlements entitlements.plist --sign "$DEVELOPER_ID" Zing.app --deep --verbose
+      
+      # Notarize the application
+      - name: Notarize the application
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          # Create a ZIP for notarization
+          ditto -c -k --keepParent Zing.app Zing.zip
+          
+          # Submit for notarization
+          xcrun notarytool submit Zing.zip --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait
+          
+          # Staple the notarization ticket
+          xcrun stapler staple Zing.app
+      
+      # Create DMG with signed app
       - name: Create DMG
         run: |
-          # Create a temporary directory for DMG contents
-          mkdir -p dmg_contents
-          cp -r Zing.app dmg_contents/
-          cp HOW_TO_OPEN_UNSIGNED_APP.txt dmg_contents/
-          
-          # Create the DMG
           create-dmg \
             --volname "Zing" \
             --volicon "assets/icon.png" \
             --window-pos 200 120 \
-            --window-size 800 500 \
+            --window-size 800 400 \
             --icon-size 100 \
             --icon "Zing.app" 200 190 \
             --hide-extension "Zing.app" \
             --app-drop-link 600 185 \
             "Zing.dmg" \
-            dmg_contents
+            "Zing.app"
+      
+      # Sign the DMG
+      - name: Sign the DMG
+        env:
+          DEVELOPER_ID: ${{ secrets.APPLE_DEVELOPER_ID }}
+        run: |
+          /usr/bin/codesign --force --sign "$DEVELOPER_ID" Zing.dmg --verbose
             
       - name: Upload App Bundle
         uses: actions/upload-artifact@v4
