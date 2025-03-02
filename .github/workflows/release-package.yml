@@ -31,7 +31,7 @@ jobs:
           cp target/release/zing Zing.app/Contents/MacOS/
           cp assets/icon.png Zing.app/Contents/Resources/
           
-          # Create Info.plist
+          # Create comprehensive Info.plist
           cat > Zing.app/Contents/Info.plist << EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -57,6 +57,10 @@ jobs:
               <string>10.13</string>
               <key>NSHighResolutionCapable</key>
               <true/>
+              <key>NSPrincipalClass</key>
+              <string>NSApplication</string>
+              <key>LSApplicationCategoryType</key>
+              <string>public.app-category.developer-tools</string>
           </dict>
           </plist>
           EOF
@@ -107,7 +111,7 @@ jobs:
           # Sign the app
           /usr/bin/codesign --force --options runtime --entitlements entitlements.plist --sign "$DEVELOPER_ID" Zing.app --deep --verbose
       
-      # Notarize the application
+      # Notarize the application with detailed error reporting
       - name: Notarize the application
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -117,11 +121,39 @@ jobs:
           # Create a ZIP for notarization
           ditto -c -k --keepParent Zing.app Zing.zip
           
-          # Submit for notarization
-          xcrun notarytool submit Zing.zip --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait
+          # Submit for notarization and capture the submission ID
+          echo "Submitting app for notarization..."
+          SUBMISSION_OUTPUT=$(xcrun notarytool submit Zing.zip --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait)
+          echo "Submission output: $SUBMISSION_OUTPUT"
           
-          # Staple the notarization ticket
-          xcrun stapler staple Zing.app
+          # Extract submission ID using grep and awk
+          SUBMISSION_ID=$(echo "$SUBMISSION_OUTPUT" | grep "id:" | awk '{print $2}')
+          echo "Extracted Submission ID: $SUBMISSION_ID"
+          
+          if [ -n "$SUBMISSION_ID" ]; then
+            # Get detailed logs about the failure
+            echo "Getting detailed notarization log..."
+            xcrun notarytool log "$SUBMISSION_ID" --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" notarization.log
+            
+            echo "=== NOTARIZATION LOG ==="
+            cat notarization.log
+            echo "========================"
+            
+            # Check status
+            STATUS_OUTPUT=$(xcrun notarytool info "$SUBMISSION_ID" --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID")
+            echo "Status output: $STATUS_OUTPUT"
+            
+            if echo "$STATUS_OUTPUT" | grep -q "status: Accepted"; then
+              echo "Notarization successful!"
+              xcrun stapler staple Zing.app
+            else
+              echo "Notarization failed. See log above for details."
+              exit 1
+            fi
+          else
+            echo "Failed to get submission ID"
+            exit 1
+          fi
       
       # Create DMG with signed app
       - name: Create DMG
