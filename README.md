@@ -3,7 +3,7 @@
   
   # Zing Text Editor
   
-  A fast, beautiful, cross-platform text editor written in Rust
+  A beautiful, cross-platform text editor written in Rust
   
   [![Open Source](https://img.shields.io/badge/Open%20Source-Free%20Forever-blue?style=for-the-badge&logo=github)](https://github.com/sukeesh/zing)
   [![Made with Rust](https://img.shields.io/badge/Made%20with-Rust-orange?style=for-the-badge&logo=rust)](https://www.rust-lang.org/)
@@ -16,7 +16,6 @@
 
 ## ✨ Features
 
-- ⚡ **Fast and Efficient**: Optimized for speed and memory efficiency, capable of handling multi-GB files
 - 🎨 **Beautiful UI**: Clean, minimal design with light and dark themes
 - 💻 **Cross-Platform**: Runs on Windows, macOS, and Linux
 - 📄 **Core Functionality**: Open, Save, and Print text files
