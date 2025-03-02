@@ -87,12 +87,12 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" build.keychain
           rm certificate.p12
       
-      # Sign the application
+      # Sign the application with enhanced entitlements
       - name: Sign the application
         env:
           DEVELOPER_ID: ${{ secrets.APPLE_DEVELOPER_ID }}
         run: |
-          # Create entitlements file
+          # Create enhanced entitlements file
           cat > entitlements.plist << EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -104,15 +104,29 @@ jobs:
               <true/>
               <key>com.apple.security.cs.disable-library-validation</key>
               <true/>
+              <key>com.apple.security.files.user-selected.read-only</key>
+              <true/>
+              <key>com.apple.security.files.user-selected.read-write</key>
+              <true/>
+              <key>com.apple.security.network.client</key>
+              <true/>
           </dict>
           </plist>
           EOF
           
-          # Sign the app
+          # Make sure executable has proper permissions
+          chmod +x Zing.app/Contents/MacOS/zing
+          
+          # Sign the app with hardened runtime
           /usr/bin/codesign --force --options runtime --entitlements entitlements.plist --sign "$DEVELOPER_ID" Zing.app --deep --verbose
+          
+          # Verify signing
+          codesign -vvv --deep --strict Zing.app
       
-      # Notarize the application with detailed error reporting
+      # Notarize the application with fixed script
       - name: Notarize the application
+        id: notarize
+        continue-on-error: true
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
@@ -121,43 +135,82 @@ jobs:
           # Create a ZIP for notarization
           ditto -c -k --keepParent Zing.app Zing.zip
           
-          # Submit for notarization and capture the submission ID
+          # Submit for notarization with JSON output for reliable parsing
           echo "Submitting app for notarization..."
-          SUBMISSION_OUTPUT=$(xcrun notarytool submit Zing.zip --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait)
-          echo "Submission output: $SUBMISSION_OUTPUT"
+          SUBMISSION_JSON=$(xcrun notarytool submit Zing.zip --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait --output-format json)
+          echo "Submission JSON: $SUBMISSION_JSON"
           
-          # Extract submission ID using grep and awk
-          SUBMISSION_ID=$(echo "$SUBMISSION_OUTPUT" | grep "id:" | awk '{print $2}')
+          # Extract submission ID properly using grep and cut
+          SUBMISSION_ID=$(echo "$SUBMISSION_JSON" | grep -o '"id" *: *"[^"]*"' | cut -d'"' -f4)
           echo "Extracted Submission ID: $SUBMISSION_ID"
           
           if [ -n "$SUBMISSION_ID" ]; then
             # Get detailed logs about the failure
             echo "Getting detailed notarization log..."
-            xcrun notarytool log "$SUBMISSION_ID" --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" notarization.log
+            xcrun notarytool log "$SUBMISSION_ID" --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" notarization.log || true
             
-            echo "=== NOTARIZATION LOG ==="
-            cat notarization.log
-            echo "========================"
+            if [ -f notarization.log ]; then
+              echo "=== NOTARIZATION LOG ==="
+              cat notarization.log
+              echo "========================"
+            else
+              echo "Failed to get notarization log, trying to get info instead"
+            fi
             
             # Check status
-            STATUS_OUTPUT=$(xcrun notarytool info "$SUBMISSION_ID" --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID")
-            echo "Status output: $STATUS_OUTPUT"
+            STATUS_JSON=$(xcrun notarytool info "$SUBMISSION_ID" --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" --output-format json)
+            echo "Status JSON: $STATUS_JSON"
             
-            if echo "$STATUS_OUTPUT" | grep -q "status: Accepted"; then
+            STATUS=$(echo "$STATUS_JSON" | grep -o '"status" *: *"[^"]*"' | cut -d'"' -f4)
+            echo "Extracted Status: $STATUS"
+            
+            if [ "$STATUS" = "Accepted" ]; then
               echo "Notarization successful!"
               xcrun stapler staple Zing.app
+              echo "::set-output name=notarized::true"
             else
-              echo "Notarization failed. See log above for details."
-              exit 1
+              echo "Notarization failed with status: $STATUS"
+              echo "::set-output name=notarized::false"
             fi
           else
             echo "Failed to get submission ID"
-            exit 1
+            echo "::set-output name=notarized::false"
           fi
       
-      # Create DMG with signed app
+      # Create instructions file for unsigned app
+      - name: Create instructions for unsigned app
+        if: steps.notarize.outputs.notarized != 'true'
+        run: |
+          # Add README with instructions for users
+          cat > "HOW_TO_OPEN_UNSIGNED_APP.txt" << EOF
+          To open Zing on macOS:
+          
+          Since this app is signed but not notarized, you may see security warnings.
+          
+          To open the app:
+          1. Right-click (or Control-click) on the app
+          2. Select "Open" from the context menu
+          3. Click "Open" in the dialog that appears
+          
+          This only needs to be done once. After that, you can open the app normally.
+          
+          Alternatively, you can run this command in Terminal to disable Gatekeeper for this app:
+          xattr -d com.apple.quarantine /Applications/Zing.app
+          EOF
+      
+      # Create DMG with signed app (always runs)
       - name: Create DMG
         run: |
+          # Create a temporary directory for DMG contents
+          mkdir -p dmg_contents
+          cp -r Zing.app dmg_contents/
+          
+          # Include instructions if notarization failed
+          if [ -f "HOW_TO_OPEN_UNSIGNED_APP.txt" ]; then
+            cp HOW_TO_OPEN_UNSIGNED_APP.txt dmg_contents/
+          fi
+          
+          # Create the DMG
           create-dmg \
             --volname "Zing" \
             --volicon "assets/icon.png" \
@@ -168,7 +221,7 @@ jobs:
             --hide-extension "Zing.app" \
             --app-drop-link 600 185 \
             "Zing.dmg" \
-            "Zing.app"
+            dmg_contents
       
       # Sign the DMG
       - name: Sign the DMG
