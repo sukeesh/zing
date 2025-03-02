@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zing - A Fast, Beautiful Text Editor for Mac</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #f97316;
+            --secondary-dark: #ea580c;
+            --dark: #e2e8f0;
+            --light: #030712;
+            --gray: #94a3b8;
+            --gray-light: #1e293b;
+            --card-bg: rgba(30, 41, 59, 0.5);
+            --text-color: #f8fafc;
+            --border-color: #1e293b;
+            --gradient-start: #4f46e5;
+            --gradient-end: #f97316;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--light);
+            background: linear-gradient(135deg, var(--light) 0%, #0a1122 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        header {
+            padding: 1.5rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            background: rgba(3, 7, 18, 0.8);
+            backdrop-filter: blur(12px);
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        header.scrolled {
+            padding: 1rem 0;
+            background: rgba(3, 7, 18, 0.95);
+        }
+        
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .logo:hover {
+            transform: scale(1.05);
+        }
+        
+        .logo img {
+            height: 40px;
+            width: auto;
+            filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.3));
+        }
+        
+        .logo h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary-light), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: var(--gray);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            transition: width 0.3s ease;
+        }
+        
+        .nav-links a:hover {
+            color: var(--text-color);
+        }
+        
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, var(--secondary), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(249, 115, 22, 0.4);
+        }
+        
+        .hero {
+            padding: 8rem 0 6rem;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.1), transparent 60%),
+                        radial-gradient(circle at bottom left, rgba(249, 115, 22, 0.1), transparent 60%);
+            z-index: -1;
+        }
+        
+        .hero-content {
+            flex: 1;
+            animation: fadeIn 1s ease-out;
+        }
+        
+        .hero-image {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .hero-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .hero-image:hover img {
+            transform: scale(1.02);
+            box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.6);
+        }
+        
+        .hero h2 {
+            font-size: 4rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            position: relative;
+        }
+        
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--gray);
+            margin-bottom: 2.5rem;
+            max-width: 600px;
+        }
+        
+        .open-source-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 0.5rem;
+            color: var(--primary-light);
+            font-weight: 500;
+            margin-bottom: 2rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .open-source-badge:hover {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .open-source-badge svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .contact {
+            padding: 8rem 0;
+            background: var(--card-bg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contact::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: radial-gradient(circle at center, rgba(99, 102, 241, 0.1), transparent 70%);
+            z-index: 0;
+        }
+
+        .contact-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .contact-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .contact-card {
+            background: rgba(30, 41, 59, 0.5);
+            padding: 2rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .contact-card h4 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+
+        .contact-card a {
+            color: var(--primary-light);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-card a:hover {
+            color: var(--secondary);
+        }
+        
+        .editable {
+            outline: none;
+            border: none;
+            background: transparent;
+            cursor: text;
+            transition: all 0.3s ease;
+        }
+        
+        .editable:focus {
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .char-counter {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-top: 0.5rem;
+            text-align: right;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .char-counter.visible {
+            opacity: 1;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .features {
+            padding: 8rem 0;
+            background: linear-gradient(to bottom, var(--light), #0a1122);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .features::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: radial-gradient(circle at center, rgba(99, 102, 241, 0.1), transparent 70%);
+            z-index: 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 5rem;
+            animation: fadeIn 1s ease-out;
+        }
+        
+        .section-title h3 {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .section-title p {
+            font-size: 1.25rem;
+            color: var(--gray);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .feature-card {
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            animation: fadeIn 1s ease-out;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .feature-card h4 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+        
+        .feature-card p {
+            color: var(--gray);
+            line-height: 1.7;
+        }
+        
+        .cta {
+            padding: 8rem 0;
+            background: rgba(30, 41, 59, 0.95);
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+        }
+        
+        .cta::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: radial-gradient(circle at center, rgba(99, 102, 241, 0.1), transparent 60%);
+            z-index: 0;
+        }
+        
+        .cta h3 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        .cta p {
+            font-size: 1.25rem;
+            margin-bottom: 2.5rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+            opacity: 0.9;
+        }
+        
+        footer {
+            background: linear-gradient(to top, var(--light), #0a1122);
+            color: var(--text-color);
+            padding: 6rem 0 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        footer::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: radial-gradient(circle at bottom right, rgba(99, 102, 241, 0.1), transparent 70%);
+            z-index: 0;
+        }
+        
+        .footer-content {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 3rem;
+            margin-bottom: 4rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .footer-logo {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .footer-logo img {
+            height: 40px;
+            width: auto;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.3));
+        }
+        
+        .footer-logo p {
+            color: var(--gray);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+
+        .developer-info {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .developer-info h5 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .social-links a {
+            color: var(--gray);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .social-links a:hover {
+            color: var(--text-color);
+        }
+
+        .social-links a svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .footer-links {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .footer-links h5 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text-color);
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .footer-links ul {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 1rem;
+        }
+        
+        .footer-links a {
+            color: var(--gray);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .footer-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            transition: width 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            color: var(--text-color);
+        }
+        
+        .footer-links a:hover::after {
+            width: 100%;
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--gray);
+            position: relative;
+            z-index: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .hero {
+                padding: 6rem 0 4rem;
+                flex-direction: column;
+                gap: 4rem;
+            }
+            
+            .hero h2 {
+                font-size: 2.5rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .section-title h3 {
+                font-size: 2.5rem;
+            }
+            
+            .feature-card {
+                padding: 2rem;
+            }
+            
+            .cta h3 {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">
+                    <img src="../assets/icon.png" alt="Zing Logo">
+                    <h1>Zing</h1>
+                </div>
+                <div class="nav-links">
+                    <a href="#features">Features</a>
+                    <a href="#download">Download</a>
+                    <a href="#contact">Contact</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h2 class="editable" contenteditable="true" data-max-length="100">A Fast, Beautiful Text Editor for Mac</h2>
+                <div class="char-counter">0/100 characters</div>
+                <a href="https://github.com/sukeesh/zing" target="_blank" class="open-source-badge">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    Open Source & Free Forever
+                </a>
+                <p class="editable" contenteditable="true" data-max-length="100">Zing is a modern text editor written in Rust, designed to handle very large files with ease while maintaining a sleek, minimal interface.</p>
+                <div class="char-counter">0/100 characters</div>
+                <div class="hero-buttons">
+                    <a href="#download" class="btn btn-primary">Download Zing - Free</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="../assets/zing_text.png" alt="Zing Editor Screenshot">
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-title">
+                <h3>Why Choose Zing?</h3>
+                <p>Designed with speed, efficiency, and beauty in mind</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h4>Fast & Efficient</h4>
+                    <p>Optimized for speed and memory efficiency, capable of handling multi-GB files without breaking a sweat.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h4>Beautiful UI</h4>
+                    <p>Clean, minimal design with light and dark themes that make editing text a pleasure.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💻</div>
+                    <h4>Mac Optimized</h4>
+                    <p>Built specifically for macOS, with native performance and integration with system features.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📄</div>
+                    <h4>Core Functionality</h4>
+                    <p>Open, Save, and Print text files with intuitive keyboard shortcuts and controls.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔌</div>
+                    <h4>Extensible</h4>
+                    <p>Designed with future extensions in mind, ready to grow with your needs.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h4>Secure</h4>
+                    <p>Built with Rust, ensuring memory safety and security for your important documents.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="container">
+            <h3>Ready to Transform Your Text Editing Experience?</h3>
+            <p>Join thousands of users who have switched to Zing for a faster, more beautiful text editing experience. Download now for free!</p>
+            <a href="#download" class="btn btn-secondary">Download Now</a>
+        </div>
+    </section>
+
+    <section id="contact" class="contact">
+        <div class="container">
+            <div class="contact-content">
+                <div class="section-title">
+                    <h3>Get in Touch</h3>
+                    <p>Have questions or suggestions? Reach out to us through any of these channels.</p>
+                </div>
+                <div class="contact-info">
+                    <div class="contact-card">
+                        <h4>GitHub Issues</h4>
+                        <p>Report bugs or request features through our GitHub issues tracker.</p>
+                        <a href="https://github.com/sukeesh/zing/issues" target="_blank">Create an Issue →</a>
+                    </div>
+                    <div class="contact-card">
+                        <h4>GitHub Discussions</h4>
+                        <p>Join the community discussion and share your ideas.</p>
+                        <a href="https://github.com/sukeesh/zing/discussions" target="_blank">Start Discussion →</a>
+                    </div>
+                    <div class="contact-card">
+                        <h4>Connect with Developer</h4>
+                        <p>Reach out to Sukeesh directly through LinkedIn or GitHub.</p>
+                        <a href="https://www.linkedin.com/in/sukeesh/" target="_blank">LinkedIn →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="../assets/icon.png" alt="Zing Logo">
+                    <p>A fast, beautiful text editor written in Rust. Designed to handle very large files with ease while maintaining a sleek, modern interface. Built with performance in mind, Zing aims to be the fastest and most reliable text editor for handling gigabyte-sized files on macOS without compromising on user experience.</p>
+                    <div class="developer-info">
+                        <h5>Developer</h5>
+                        <p>Developed by Sukeesh</p>
+                        <div class="social-links">
+                            <a href="https://github.com/sukeesh" target="_blank">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                                </svg>
+                                GitHub
+                            </a>
+                            <a href="https://github.com/sukeesh/zing" target="_blank">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12.89 3l1.96.4L11.11 21l-1.96-.4L12.89 3zm6.7 4L22 9.41L17.42 14L22 18.59L19.59 21L15 16.42L10.42 21L8 18.59L12.58 14L8 9.41L10.41 7L15 11.58L19.59 7z"/>
+                                </svg>
+                                Zing Repo
+                            </a>
+                            <a href="https://www.linkedin.com/in/sukeesh/" target="_blank">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                                </svg>
+                                LinkedIn
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h5>Product</h5>
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#download">Download</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h5>About</h5>
+                    <ul>
+                        <li><a href="https://github.com/sukeesh/zing" target="_blank">Source Code</a></li>
+                        <li><a href="https://github.com/sukeesh/zing/issues" target="_blank">Report Issues</a></li>
+                        <li><a href="https://github.com/sukeesh/zing/blob/main/README.md" target="_blank">Documentation</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 Zing Text Editor. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const header = document.querySelector('header');
+            const heroSection = document.querySelector('.hero');
+            
+            // Handle header scroll effect
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
+            });
+            
+            // Animate elements on scroll
+            const animateOnScroll = () => {
+                const elements = document.querySelectorAll('.feature-card, .section-title');
+                elements.forEach(element => {
+                    const elementTop = element.getBoundingClientRect().top;
+                    const elementBottom = element.getBoundingClientRect().bottom;
+                    
+                    if (elementTop < window.innerHeight && elementBottom > 0) {
+                        element.style.opacity = '1';
+                        element.style.transform = 'translateY(0)';
+                    }
+                });
+            };
+            
+            // Initial setup for scroll animations
+            document.querySelectorAll('.feature-card, .section-title').forEach(element => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(20px)';
+                element.style.transition = 'all 0.6s ease-out';
+            });
+            
+            window.addEventListener('scroll', animateOnScroll);
+            animateOnScroll(); // Run once on load
+            
+            // Handle editable text
+            const editables = document.querySelectorAll('.editable');
+            const charCounters = document.querySelectorAll('.char-counter');
+            
+            // Hide all character counters
+            charCounters.forEach(counter => {
+                counter.style.display = 'none';
+            });
+            
+            editables.forEach((editable) => {
+                const maxLength = parseInt(editable.getAttribute('data-max-length'));
+                
+                editable.addEventListener('input', function() {
+                    const textLength = editable.textContent.length;
+                    
+                    if (textLength > maxLength) {
+                        editable.textContent = editable.textContent.substring(0, maxLength);
+                        
+                        const range = document.createRange();
+                        const sel = window.getSelection();
+                        range.selectNodeContents(editable);
+                        range.collapse(false);
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                    }
+                });
+            });
+            
+            // Handle download button
+            const buyButton = document.querySelector('#download');
+            buyButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('Starting download...');
+            });
+        });
+    </script>
+</body>
+</html>

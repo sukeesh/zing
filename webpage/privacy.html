@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - Zing Text Editor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #f97316;
+            --secondary-dark: #ea580c;
+            --dark: #e2e8f0;
+            --light: #030712;
+            --gray: #94a3b8;
+            --gray-light: #1e293b;
+            --card-bg: rgba(30, 41, 59, 0.5);
+            --text-color: #f8fafc;
+            --border-color: #1e293b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--light);
+            background: linear-gradient(135deg, var(--light) 0%, #0a1122 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        header {
+            padding: 1.5rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            background: rgba(3, 7, 18, 0.8);
+            backdrop-filter: blur(12px);
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+        
+        .logo img {
+            height: 40px;
+            width: auto;
+            filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.3));
+        }
+        
+        .logo h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary-light), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .privacy-content {
+            padding: 8rem 0 4rem;
+        }
+        
+        .privacy-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        
+        .privacy-header h2 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .privacy-header p {
+            color: var(--gray);
+            font-size: 1.25rem;
+        }
+        
+        .privacy-section {
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .privacy-section h3 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text-color);
+        }
+        
+        .privacy-section p {
+            color: var(--gray);
+            margin-bottom: 1.5rem;
+        }
+        
+        .privacy-section ul {
+            list-style-type: disc;
+            margin-left: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--gray);
+        }
+        
+        .privacy-section li {
+            margin-bottom: 0.75rem;
+        }
+        
+        .contact-info {
+            margin-top: 3rem;
+            text-align: center;
+        }
+        
+        .contact-info p {
+            color: var(--gray);
+        }
+        
+        .contact-info a {
+            color: var(--primary-light);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .contact-info a:hover {
+            color: var(--secondary);
+        }
+        
+        @media (max-width: 768px) {
+            .privacy-header h2 {
+                font-size: 2.5rem;
+            }
+            
+            .privacy-section {
+                padding: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="index.html" class="logo">
+                    <img src="../assets/icon.png" alt="Zing Logo">
+                    <h1>Zing</h1>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="privacy-content">
+        <div class="container">
+            <div class="privacy-header">
+                <h2>Privacy Policy</h2>
+                <p>Last updated: March 2024</p>
+            </div>
+
+            <div class="privacy-section">
+                <h3>Introduction</h3>
+                <p>Welcome to Zing's Privacy Policy. This policy describes how we collect, use, and handle your information when you use our text editor application and website.</p>
+            </div>
+
+            <div class="privacy-section">
+                <h3>Information We Collect</h3>
+                <p>We collect minimal information to provide and improve our service:</p>
+                <ul>
+                    <li>Basic usage statistics (application launches, feature usage)</li>
+                    <li>Crash reports and error logs</li>
+                    <li>System information (OS version, device type)</li>
+                    <li>Payment information (processed securely through our payment provider)</li>
+                </ul>
+                <p>We do NOT collect or store:</p>
+                <ul>
+                    <li>The content of your text files</li>
+                    <li>Your personal documents</li>
+                    <li>Keystroke data</li>
+                    <li>Browser history</li>
+                </ul>
+            </div>
+
+            <div class="privacy-section">
+                <h3>How We Use Your Information</h3>
+                <p>The information we collect is used for:</p>
+                <ul>
+                    <li>Improving the Zing text editor</li>
+                    <li>Fixing bugs and technical issues</li>
+                    <li>Processing your purchase</li>
+                    <li>Providing customer support</li>
+                    <li>Sending important updates about the application</li>
+                </ul>
+            </div>
+
+            <div class="privacy-section">
+                <h3>Data Storage and Security</h3>
+                <p>We take the security of your information seriously:</p>
+                <ul>
+                    <li>All data is encrypted in transit and at rest</li>
+                    <li>We use industry-standard security measures</li>
+                    <li>Access to data is strictly limited to authorized personnel</li>
+                    <li>Regular security audits are performed</li>
+                </ul>
+            </div>
+
+            <div class="privacy-section">
+                <h3>Your Rights</h3>
+                <p>You have the right to:</p>
+                <ul>
+                    <li>Access your personal information</li>
+                    <li>Request deletion of your data</li>
+                    <li>Opt-out of non-essential data collection</li>
+                    <li>Receive a copy of your data</li>
+                    <li>Lodge a complaint with relevant authorities</li>
+                </ul>
+            </div>
+
+            <div class="privacy-section">
+                <h3>Updates to This Policy</h3>
+                <p>We may update this privacy policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Last updated" date.</p>
+            </div>
+
+            <div class="privacy-section">
+                <h3>Third-Party Services</h3>
+                <p>We use the following third-party services:</p>
+                <ul>
+                    <li>Payment processing (for purchases)</li>
+                    <li>Error tracking (for crash reports)</li>
+                    <li>Analytics (for usage statistics)</li>
+                </ul>
+                <p>Each of these services has their own privacy policy and handling of data.</p>
+            </div>
+
+            <div class="contact-info">
+                <p>If you have any questions about this Privacy Policy, please contact us at:</p>
+                <p><a href="mailto:privacy@zing-editor.com">privacy@zing-editor.com</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

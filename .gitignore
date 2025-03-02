@@ -1,0 +1,18 @@
+.idea/
+.vscode/
+
+# Rust build directory
+/target
+
+# Rust backup files
+**/*.rs.bk
+
+# Build artifacts
+debug/
+release/
+
+# Common binary artifacts
+*.exe
+*.dll
+*.so
+*.dylib
