@@ -9,7 +9,7 @@
   [![Made with Rust](https://img.shields.io/badge/Made%20with-Rust-orange?style=for-the-badge&logo=rust)](https://www.rust-lang.org/)
   [![Website](https://img.shields.io/badge/Website-Visit%20Zing-purple?style=for-the-badge&logo=safari)](http://sukeesh.in/zing/)
   
-  [Features](#features) • [Download](#building-from-source) • [Usage](#usage) • [Development](#development)
+  [Features](#-features) • [Building from Source](#-building-from-source) • [Usage](#-usage) • [Development](#️-development)
 
   <img src="assets/zing_text.png" alt="Zing Editor Screenshot" width="800"/>
 </div>
@@ -82,6 +82,27 @@ cargo build --release
 cargo run --release
 ```
 </details>
+
+## 🤝 Contributing
+
+Contributions to Zing are warmly welcomed! Whether you're fixing bugs, adding features, improving documentation, or suggesting ideas, your help is appreciated.
+
+### How to Contribute
+
+1. **Fork the repository** and create your branch from `main`
+2. **Make your changes** and ensure they follow the project's coding style
+3. **Test your changes** thoroughly
+4. **Submit a pull request** with a clear description of your improvements
+
+### Areas for Contribution
+
+- Bug fixes and performance improvements
+- New features and enhancements
+- Documentation and examples
+- UI/UX improvements
+- Cross-platform compatibility
+
+No contribution is too small! Feel free to open issues for discussions or suggestions before implementing changes.
 
 ## 📝 Usage
 
